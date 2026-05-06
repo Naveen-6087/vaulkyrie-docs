@@ -67,6 +67,12 @@ This design makes reuse visible: after a successful spend, the old root should n
 
 Vaulkyrie's PQC direction is inspired by Blueshift Labs' Solana Winternitz work. The Vaulkyrie implementation is its own code path, but the core idea of making a Solana-compatible Winternitz authorization flow is credited to that work.
 
+Primary Blueshift references:
+
+- Winternitz Signatures on Solana: https://learn.blueshift.gg/en/courses/winternitz-signatures-on-solana
+- Winternitz Signatures with Pinocchio: https://learn.blueshift.gg/en/courses/winternitz-signatures-on-solana/winternitz-signatures-with-pinocchio
+- Pinocchio Quantum Vault challenge: https://learn.blueshift.gg/en/challenges/pinocchio-quantum-vault
+
 ## Source references
 
 - `src/services/quantum/wots.ts`
@@ -76,4 +82,3 @@ Vaulkyrie's PQC direction is inspired by Blueshift Labs' Solana Winternitz work.
 - `crates/vaulkyrie-sdk/src/instruction.rs`
 - `programs/vaulkyrie-core/src/instruction.rs`
 - `programs/vaulkyrie-core/src/processor.rs`
-
