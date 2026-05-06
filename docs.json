@@ -9,8 +9,8 @@
   },
   "favicon": "/favicon.svg",
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/logo/xlogo.jpeg",
+    "dark": "/logo/xlogo.jpeg"
   },
   "navigation": {
     "groups": [
@@ -66,9 +66,19 @@
     "global": {
       "anchors": [
         {
+          "anchor": "Website",
+          "href": "https://www.vaulkyrie.xyz/",
+          "icon": "globe"
+        },
+        {
           "anchor": "GitHub",
-          "href": "https://github.com/Naveen-6087",
+          "href": "https://github.com/Vaulkyrie",
           "icon": "github"
+        },
+        {
+          "anchor": "X",
+          "href": "https://x.com/vaulkyrie_hq",
+          "icon": "twitter"
         }
       ]
     }
@@ -77,13 +87,17 @@
     "links": [
       {
         "label": "Repository",
-        "href": "https://github.com/Naveen-6087/vaulkyrie-docs"
+        "href": "https://github.com/Vaulkyrie"
+      },
+      {
+        "label": "Website",
+        "href": "https://www.vaulkyrie.xyz/"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Start Building",
-      "href": "/overview/setup"
+      "label": "Main Site",
+      "href": "https://www.vaulkyrie.xyz/"
     }
   },
   "contextual": {
@@ -100,7 +114,8 @@
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/Naveen-6087"
+      "github": "https://github.com/Vaulkyrie",
+      "x": "https://x.com/vaulkyrie_hq"
     }
   }
 }

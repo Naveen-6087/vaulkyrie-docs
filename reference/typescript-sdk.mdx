@@ -1,14 +1,18 @@
 ---
 title: "TypeScript SDK"
-description: "The current internal browser SDK and what is required for a standalone public SDK."
+description: "The browser SDK package path and what remains before public npm release."
 icon: "braces"
 ---
 
-Vaulkyrie has a TypeScript SDK under `src/sdk/`, but it is currently internal to the browser wallet. It is not yet a standalone npm package.
+Vaulkyrie has TypeScript SDK code in the browser wallet and a package workspace at `packages/vaulkyrie-sdk`. The package is named `@vaulkyrie/sdk` and is prepared for local builds, local packing, and eventual npm publication.
+
+<Warning>
+Until the package is published and versioned on npm, use local workspace linking or local package tarballs only. Do not treat `npm install @vaulkyrie/sdk` as a live public install path until the npm package exists.
+</Warning>
 
 ## Current exports
 
-`src/sdk/index.ts` exports:
+`packages/vaulkyrie-sdk/src/index.ts` exports:
 
 - `constants`
 - `types`
@@ -22,12 +26,12 @@ Vaulkyrie has a TypeScript SDK under `src/sdk/`, but it is currently internal to
 
 | Capability | Source |
 | --- | --- |
-| PDA derivation | `src/sdk/pda.ts` |
-| Instruction builders | `src/sdk/instructions.ts` |
-| Account decoders | `src/sdk/accounts.ts` |
-| Error parsing | `src/sdk/errors.ts` |
-| Account fetch helpers | `src/sdk/client.ts` |
-| Spend binding hashes | `src/sdk/spendBindings.ts` |
+| PDA derivation | `packages/vaulkyrie-sdk/src/pda.ts` |
+| Instruction builders | `packages/vaulkyrie-sdk/src/instructions.ts` |
+| Account decoders | `packages/vaulkyrie-sdk/src/accounts.ts` |
+| Error parsing | `packages/vaulkyrie-sdk/src/errors.ts` |
+| Account fetch helpers | `packages/vaulkyrie-sdk/src/client.ts` |
+| Spend binding hashes | `packages/vaulkyrie-sdk/src/spendBindings.ts` |
 
 ## Builder coverage
 
@@ -50,7 +54,7 @@ It does not yet expose every Rust SDK builder. Missing public TS builders includ
 
 ```ts
 import { Connection, PublicKey } from "@solana/web3.js";
-import { VaulkyrieClient } from "@/sdk";
+import { VaulkyrieClient } from "@vaulkyrie/sdk";
 
 const connection = new Connection("https://api.devnet.solana.com", "confirmed");
 const client = new VaulkyrieClient(connection);
@@ -62,7 +66,7 @@ const vault = await client.getVaultRegistry(new PublicKey(walletPublicKey));
 
 ```ts
 import { PublicKey } from "@solana/web3.js";
-import { createInitPqcWalletInstruction } from "@/sdk";
+import { createInitPqcWalletInstruction } from "@vaulkyrie/sdk";
 
 const ix = createInitPqcWalletInstruction(
   new PublicKey(payer),
@@ -82,7 +86,7 @@ import {
   buildSpendActionHash,
   buildSpendOrchestrationBindings,
   generateSpendSessionNonce,
-} from "@/sdk/spendBindings";
+} from "@vaulkyrie/sdk/spendBindings";
 
 const sessionNonce = generateSpendSessionNonce();
 const actionHash = await buildSpendActionHash({
@@ -104,27 +108,50 @@ const bindings = await buildSpendOrchestrationBindings({
 });
 ```
 
+## How developers will use it after publication
+
+Once published to npm, the intended install command is:
+
+```bash
+npm install @vaulkyrie/sdk @solana/web3.js
+```
+
+Example import:
+
+```ts
+import { VaulkyrieClient, findPqcWalletPda } from "@vaulkyrie/sdk";
+```
+
+Before publication, local development can build and pack the workspace package:
+
+```bash
+npm install
+npm run build:sdk
+npm run pack:sdk
+```
+
+Then consume the generated local tarball or use a workspace dependency in a test application.
+
 ## Should Vaulkyrie create a standalone TypeScript SDK?
 
 Yes, if external developers are expected to integrate Vaulkyrie into their own codebases.
 
-The current `src/sdk/` is useful, but it is coupled to the browser wallet project structure and not packaged. A standalone SDK should be created before telling third-party developers to install and import it.
+Yes. The package folder now exists, but it should not be promoted as public-ready until builder parity, byte-level fixture tests, and npm release metadata are complete.
 
-Recommended next implementation:
+Required implementation steps:
 
-1. Create a dedicated package such as `packages/vaulkyrie-sdk-ts`.
-2. Move code that has no extension dependency out of `src/sdk/`.
-3. Add a package manifest with ESM output and type declarations.
-4. Add fixtures that compare TypeScript instruction bytes against `crates/vaulkyrie-sdk`.
-5. Close builder parity gaps with the Rust SDK.
-6. Publish or document local package linking only after tests pass.
+1. Keep extension-independent SDK code in `packages/vaulkyrie-sdk`.
+2. Add fixtures that compare TypeScript instruction bytes against `crates/vaulkyrie-sdk`.
+3. Close builder parity gaps with the Rust SDK.
+4. Confirm package contents with `npm pack -w @vaulkyrie/sdk --dry-run`.
+5. Reserve or configure the `@vaulkyrie` npm organization.
+6. Publish only after tests and release review pass.
 
 ## Current readiness
 
 | Question | Answer |
 | --- | --- |
-| Is there TS SDK code? | Yes, in `src/sdk/`. |
-| Is it published as npm package? | No. |
+| Is there TS SDK code? | Yes, in `packages/vaulkyrie-sdk` and mirrored in the extension source. |
+| Is it published as npm package? | Not yet. It is package-ready for local build/pack testing. |
 | Is it complete against Rust SDK? | No. It covers the browser's current needs, not every builder. |
-| Can docs include snippets? | Yes, but they should be labeled as internal imports until extraction. |
-
+| Can docs include snippets? | Yes, but npm install snippets should remain marked as future/public-release examples until publication. |

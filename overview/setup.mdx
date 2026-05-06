@@ -1,13 +1,11 @@
 ---
 title: "Setup"
-description: "Commands for building and verifying the active codebases without exposing local machine paths."
+description: "Commands for building and verifying Vaulkyrie from source."
 icon: "terminal"
 ---
 
-This page intentionally lists commands without absolute machine paths. Run each command from the matching repository root or subdirectory.
-
 <Warning>
-For Solana, Rust-for-Solana, local validators, Pinocchio builds, Anchor, and Arcium tooling, use WSL unless the project owner explicitly changes that rule.
+Vaulkyrie is not audited yet. Use these commands for development, review, and test environments only.
 </Warning>
 
 ## Browser wallet
@@ -66,7 +64,7 @@ The workspace contains:
 
 ## Docs site
 
-Run these from the Mintlify docs repository.
+Run these from the Mintlify docs repository if you are contributing to documentation.
 
 ```bash
 npm i -g mint
@@ -74,5 +72,4 @@ mint validate
 mint dev
 ```
 
-Mintlify deploys from the GitHub repository connected to the hosted docs project. After a commit lands on the connected branch, the hosted docs site should rebuild automatically.
-
+The hosted documentation is available at https://vaulkyrie.mintlify.app/.

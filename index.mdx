@@ -1,79 +1,83 @@
 ---
 title: "Vaulkyrie"
-description: "A Solana browser wallet exploring threshold custody, post-quantum one-time authorization, and private transfers."
+description: "A Solana wallet suite for threshold custody, private transfers, and post-quantum-oriented wallet control."
 icon: "shield-keyhole"
 ---
 
-Vaulkyrie is an experimental Solana wallet system built around a simple idea: a wallet should not be locked to one custody model. The codebase currently supports three wallet modes that share the same browser wallet shell but use different signing and authorization paths.
+Vaulkyrie is a Solana wallet suite for users and builders who want more than a single local private key. The suite brings together a browser wallet, cross-device signing coordination, FROST threshold custody, Privacy Vault flows powered by Umbra, and a post-quantum-oriented PQC Wallet path based on Winternitz one-time authorization.
+
+<Warning>
+Vaulkyrie is early-stage software. The code has not completed a formal third-party audit, the SDK and CLI are being prepared for public distribution, and this documentation should be treated as initial technical documentation for testing and review. Do not use Vaulkyrie for production custody or high-value funds yet.
+</Warning>
 
 <CardGroup cols={3}>
   <Card title="Threshold Vault" icon="users" href="/wallet-modes/threshold-vault">
-    A FROST-based MPC wallet where signing authority is split across participants instead of held as one private key.
+    Split signing authority across participants with FROST DKG and threshold Ed25519 signatures.
   </Card>
   <Card title="PQC Wallet" icon="atom" href="/wallet-modes/pqc-wallet">
-    A Winternitz one-time signature wallet path for post-quantum-oriented spend authorization.
+    Use a Winternitz one-time authorization path that advances to a fresh root after each PQC spend.
   </Card>
-  <Card title="Privacy Vault" icon="eye-off" href="/wallet-modes/privacy-vault">
-    A privacy-focused mode that integrates Umbra for confidential balances, private sends, and claimable UTXOs.
+  <Card title="Privacy Vault" icon="shield" href="/wallet-modes/privacy-vault">
+    Access private transfer workflows through Vaulkyrie's Umbra integration.
   </Card>
 </CardGroup>
 
-## What Vaulkyrie is
+## What Vaulkyrie offers
 
-Vaulkyrie is a browser extension wallet plus a supporting Rust workspace and relay server.
+Vaulkyrie is designed as a wallet suite rather than a single wallet mode.
 
-The browser app is the user-facing wallet. It handles onboarding, account state, DKG ceremonies, FROST signing, Privacy Vault signing, PQC key storage, transaction approval, and Umbra operations. The Rust workspace holds the on-chain program, protocol constants, FROST harnesses, Rust SDK, WASM bindings, and CLI. The relay server coordinates cross-device threshold ceremonies and can hold a server cosigner share when configured.
+| Option | Who it is for | What it does |
+| --- | --- | --- |
+| Threshold Vault | Teams, shared treasuries, advanced self-custody users | Requires a threshold set of participants to cooperate before a Solana transaction can be signed. |
+| PQC Wallet | Users testing hash-based authorization models | Uses one-time Winternitz signing material and rotates to the next root after each spend. |
+| Privacy Vault | Users testing private transfer workflows | Connects Vaulkyrie wallet flows to Umbra-powered private transfer operations. |
+| Relay Server | Multi-device users and operators | Coordinates cross-device DKG/signing sessions and optional server cosigner support. |
+| SDK and CLI | Developers | Provide instruction builders, PDA helpers, account decoding, DKG harnesses, and integration tooling. |
 
-Vaulkyrie is not a single monolithic wallet. It is closer to a custody lab with three user-facing signing modes:
+## Official links
 
-- Threshold custody: the wallet public key is controlled by a threshold Ed25519 key generated through DKG.
-- Post-quantum-oriented custody: each PQC spend consumes a one-time Winternitz signing root and advances to the next root.
-- Private transfers: a Privacy Vault uses Umbra SDK flows for confidential registration, encrypted balances, deposits, withdrawals, private sends, scanning, and claims.
+<CardGroup cols={3}>
+  <Card title="Main website" icon="globe" href="https://www.vaulkyrie.xyz/">
+    The public Vaulkyrie website and landing page.
+  </Card>
+  <Card title="GitHub organization" icon="github" href="https://github.com/Vaulkyrie">
+    The destination organization for Vaulkyrie repositories.
+  </Card>
+  <Card title="X / Twitter" icon="twitter" href="https://x.com/vaulkyrie_hq">
+    Official Vaulkyrie updates.
+  </Card>
+</CardGroup>
 
-## What makes it different
-
-Most wallets expose one signing primitive: a local Ed25519 keypair. Vaulkyrie separates the wallet experience from the signing primitive.
+## System overview
 
 ```mermaid
 flowchart LR
-  UI[Browser wallet UI] --> Approval[Approval and transaction analysis]
-  Approval --> Threshold[Threshold Vault]
-  Approval --> PQC[PQC Wallet]
-  Approval --> Privacy[Privacy Vault]
-  Threshold --> FROST[FROST DKG and threshold signing]
-  FROST --> Relay[BroadcastChannel or WebSocket relay]
-  PQC --> WOTS[Winternitz one-time signatures]
-  Privacy --> Umbra[Umbra confidential transfer SDK]
-  FROST --> Solana[Solana transaction signature]
-  WOTS --> Core[vaulkyrie-core program]
+  User[User] --> Browser[Vaulkyrie browser wallet]
+  Browser --> Threshold[Threshold Vault]
+  Browser --> PQC[PQC Wallet]
+  Browser --> Privacy[Privacy Vault]
+  Threshold --> FROST[FROST DKG and signing]
+  FROST --> Relay[Cross-device relay]
+  PQC --> WOTS[Winternitz one-time auth]
+  Privacy --> Umbra[Umbra integration]
+  FROST --> Solana[Solana RPC]
+  WOTS --> Core[vaulkyrie-core]
   Umbra --> Solana
 ```
 
 ## Current code-sourced status
 
-This documentation reflects the code as it exists now, not older project notes.
-
 | Surface | Current state |
 | --- | --- |
-| Browser wallet | Implemented as a Vite React extension in `src/`. It includes onboarding, approval UI, threshold signing, PQC wallet UI, Privacy Vault UI, and an internal TypeScript SDK. |
-| Relay server | Implemented in `relay-server/src/`. It exposes WebSocket ceremony relay, HTTP health/status endpoints, server cosigner registration, cosigner signing, and PQC wallet sponsorship helpers. |
+| Browser wallet | Implemented as a Vite React browser extension in `src/`. It includes onboarding, approval UI, threshold signing, PQC wallet UI, Privacy Vault UI, and internal wallet SDK code. |
+| Relay server | Implemented in `relay-server/src/`. It supports WebSocket ceremony relay, session invites, server cosigner registration/signing, and PQC sponsorship helpers. |
 | Rust SDK | Implemented in `crates/vaulkyrie-sdk/`. It includes instruction builders, PDA helpers, account decoders, error decoding, and optional FROST helpers. |
-| CLI | Implemented in `crates/vaulkyrie-cli/`. It is usable from the workspace and emits instruction JSON for vault, authority, PQC, spend, recovery, PDA, decode, inspect, and DKG flows. |
-| TypeScript SDK | Present under `src/sdk/`, but currently internal to the browser wallet and not packaged as a standalone public SDK. |
+| CLI | Implemented in `crates/vaulkyrie-cli/`. It is usable from the workspace for DKG harnesses, instruction JSON, PDA derivation, decoding, and inspection. |
+| TypeScript SDK | Now being prepared as a package from browser SDK code. Until it is published, local workspace/package-link usage is the intended path. |
 
-<Warning>
-The Solana program source is treated as deployment-sensitive. The docs describe it, but this pass does not change program behavior or instruction layouts.
-</Warning>
+## Where to start
 
-## Source boundaries
-
-Project-specific claims in these docs come from the active source trees:
-
-- Browser extension and relay server: `src/` and `relay-server/src/`
-- Rust workspace: `crates/` and `programs/vaulkyrie-core/src/`
-
-Protocol background uses primary or protocol-owned references only where useful:
-
-- FROST: RFC 9591
-- Umbra: Umbra SDK, indexer, and relayer documentation
-- Winternitz/PQC context: Vaulkyrie source and Blueshift Labs inspiration material
+- Read the [codebase map](/overview/codebase-map) to understand the moving parts.
+- Read [Threshold Vault](/wallet-modes/threshold-vault), [PQC Wallet](/wallet-modes/pqc-wallet), and [Privacy Vault](/wallet-modes/privacy-vault) to choose a wallet mode.
+- Read [Rust SDK and CLI](/reference/rust-sdk-cli) and [TypeScript SDK](/reference/typescript-sdk) before building an integration.
+- Read [Readiness](/reference/readiness) before testing with real infrastructure.

@@ -4,24 +4,33 @@ description: "Current readiness assessment from the active source code."
 icon: "list-checks"
 ---
 
-This page is intentionally conservative. It describes what is implemented now and what should happen before a public developer release.
+This page is intentionally conservative. Vaulkyrie is early-stage software and has not completed a formal third-party audit.
+
+<Warning>
+Do not treat the current browser wallet, relay server, SDK, CLI, or program as production-ready custody software. Use test funds and development environments until audits, deployment hardening, versioned releases, and public package distribution are complete.
+</Warning>
 
 ## Current status
 
 | Area | Ready for internal use | Ready for public external developers | Notes |
 | --- | --- | --- | --- |
-| Browser wallet | Yes | Not as a packaged product | App builds from source; extension packaging and store distribution are separate tasks. |
-| Relay server | Yes | Partially | Works as a private server; production deployment hardening and operational docs are still needed. |
-| Rust SDK | Yes | Partially | Good workspace API; not documented as a published crates.io package. |
-| CLI | Yes | Partially | Useful local developer CLI; not a polished installed distribution. |
-| TypeScript SDK | Yes, internal | No | Needs extraction, parity tests, package manifest, and public import paths. |
+| Browser wallet | Yes | Not yet | App builds from source; Chrome Web Store packaging and production relay deployment are still required. |
+| Relay server | Yes | Not yet | Works as a private server; production hosting, TLS, monitoring, rate limits, and operational runbooks are still required. |
+| Rust SDK | Yes | Not yet | Workspace API exists; crate publication to crates.io is still required. |
+| CLI | Yes | Not yet | Local developer CLI exists; installable releases and binary distribution are still required. |
+| TypeScript SDK | Yes | Not yet | `@vaulkyrie/sdk` workspace package builds locally; npm publication and parity tests are still required. |
 | Solana program | Source exists | Deployment-sensitive | Do not change instruction layouts casually because redeployment and client compatibility are involved. |
 
-## Code cleanup decision for this docs pass
+## Publication checklist
 
-No source refactor was required before rewriting the docs. The main issue was documentation accuracy, not a code organization blocker.
+Before public use, Vaulkyrie should complete:
 
-The only recommended code work before public SDK docs is the TypeScript SDK extraction described in the TypeScript SDK page. That should be done as a separate implementation task with tests because it changes package boundaries.
+- Independent security audit for wallet, relay, SDK, and on-chain code.
+- Published npm package for the TypeScript SDK.
+- Published crates.io packages for Rust SDK and CLI.
+- Hosted `wss://` relay endpoint with TLS, monitoring, rate limits, and abuse controls.
+- Chrome Web Store packaging, privacy policy, support URL, screenshots, and release process.
+- Versioned release notes and compatibility policy for SDK, CLI, extension, relay, and program.
 
 ## Verification commands
 
@@ -42,12 +51,6 @@ cargo test --workspace
 cargo fmt --all --check
 ```
 
-## Documentation rules for this project
+## Public documentation policy
 
-- Use repository-relative paths only.
-- Do not include local machine directories.
-- Do not claim a public SDK exists until it is packaged.
-- Do not rely on stale markdown when code disagrees.
-- Do not edit Solana program logic during documentation cleanup.
-- Mark internal imports clearly in snippets.
-
+Public examples should distinguish between released packages and local development commands. Until npm and crates.io releases are published, install commands are shown as intended release paths rather than live availability claims.

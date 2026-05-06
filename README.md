@@ -13,7 +13,6 @@ mint dev
 ## Documentation rules
 
 - Use repository-relative source references only.
-- Do not include local machine paths.
 - Project-specific behavior must come from the active codebase.
 - Protocol background should use primary or protocol-owned references.
 - Do not claim the TypeScript SDK is public until it is packaged and tested as a standalone package.
