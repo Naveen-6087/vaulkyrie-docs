@@ -1,0 +1,61 @@
+---
+title: "Security Model"
+description: "What Vaulkyrie protects, what it does not protect, and how each wallet mode changes the trust boundary."
+icon: "shield-check"
+---
+
+Vaulkyrie has three different signing models, so its security model is mode-dependent.
+
+## Threat boundaries by mode
+
+| Mode | Main secret | What compromise means | Mitigation in code |
+| --- | --- | --- | --- |
+| Threshold Vault | FROST key packages | A device with fewer than threshold shares cannot sign alone. Enough shares can sign. | DKG distributes shares; signing requires threshold participants; server cosigner stores only one participant share. |
+| PQC Wallet | One-time Winternitz secret elements | Reusing a consumed one-time key weakens or destroys security for that key. | `prepareQuantumVaultAdvanceInBackground` signs an advance message and stores the next key record before submission. |
+| Privacy Vault | Local Ed25519 secret plus Umbra master seed | The signer can authorize Umbra operations; the master seed is needed to decrypt private balance state. | Background session checks, encrypted storage, master seed validation against Umbra identity. |
+
+## Relay server trust model
+
+The relay server forwards ceremony messages and maintains session membership. It should not be treated as a trusted custody authority.
+
+For regular ceremonies, it sees round messages but not every secret share. For server cosigner mode, it stores one cosigner key package encrypted in server-local state. That cosigner can contribute one threshold signature share when invited, but it cannot sign alone unless the threshold policy is configured incorrectly.
+
+Relevant source:
+
+- `relay-server/src/server.ts`
+- `relay-server/src/cosigner.ts`
+- `relay-server/src/secureStorage.ts`
+- `src/services/frost/cosignerThresholdSigner.ts`
+
+## One-time signature safety
+
+Winternitz signatures are one-time signatures. A single key should sign exactly one message. Vaulkyrie encodes this model by treating the current root as spend authority and advancing to the next root after each spend.
+
+Relevant source:
+
+- `src/services/quantum/wots.ts`
+- `src/background/quantumVaultSession.ts`
+- `crates/vaulkyrie-protocol/src/lib.rs`
+- `programs/vaulkyrie-core/src/processor.rs`
+
+## Seed and backup safety
+
+The browser wallet stores wallet state and key material through encrypted persistence helpers. The background session requires the active wallet password before revealing secrets or signing with local secret material.
+
+Relevant source:
+
+- `src/lib/walletPersistStorage.ts`
+- `src/lib/walletBackup.ts`
+- `src/background/sessionState.ts`
+- `src/background/vaultSession.ts`
+- `src/services/umbra/umbraMasterSeedStorage.ts`
+- `src/services/quantum/quantumVaultStorage.ts`
+
+## Practical cautions
+
+- Do not publish raw FROST key packages, Privacy Vault private keys, Umbra master seeds, PQC mnemonics, or serialized WOTS secret keys.
+- Do not reuse a PQC one-time key after it has signed.
+- Do not rely on local browser storage as the only copy of recoverable secrets.
+- Do not document or share machine-specific paths in public docs.
+- Do not change on-chain instruction layouts without coordinating redeployment and client compatibility.
+

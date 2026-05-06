@@ -1,0 +1,91 @@
+---
+title: "MPC, TSS, and DKG"
+description: "The custody concepts behind Vaulkyrie's Threshold Vault."
+icon: "key-round"
+---
+
+MPC means multiple parties compute a result together without one party learning all private inputs. TSS, or threshold signature schemes, apply that idea to digital signatures: a group of participants collectively produces one valid signature when enough participants cooperate.
+
+In a wallet, the goal is simple: no single machine should need to hold the full signing key.
+
+## Traditional wallet vs threshold wallet
+
+```mermaid
+flowchart LR
+  subgraph Traditional["Traditional wallet"]
+    SK[Single private key] --> Sig1[Signature]
+  end
+
+  subgraph Threshold["Threshold wallet"]
+    S1[Share 1] --> Ceremony[Threshold signing]
+    S2[Share 2] --> Ceremony
+    S3[Share 3] --> Ceremony
+    Ceremony --> Sig2[One normal signature]
+  end
+```
+
+A Solana validator or dApp does not need to know that threshold signing happened. It only sees a valid Ed25519 signature for the wallet public key.
+
+## DKG
+
+DKG means distributed key generation. It is the ceremony that creates key shares without a trusted dealer. Instead of one party creating a private key and splitting it, all participants contribute randomness and end with:
+
+- A participant-specific secret key package.
+- A shared public key package.
+- A group public key that verifies final signatures.
+
+In Vaulkyrie, DKG is implemented through the WASM FROST exports in `crates/vaulkyrie-frost-wasm/src/lib.rs` and wrapped by `src/services/frost/frostService.ts`.
+
+## Why threshold matters
+
+For a 2-of-3 vault:
+
+- One lost participant can be tolerated.
+- One compromised participant cannot sign alone.
+- Any two valid participants can sign.
+- A server cosigner can be one participant, but it should not reduce the effective security threshold.
+
+## Vaulkyrie ceremony data
+
+The browser orchestrators exchange three DKG rounds and two signing rounds:
+
+| Flow | Round | Purpose |
+| --- | --- | --- |
+| DKG | Round 1 | Participants generate commitments. |
+| DKG | Round 2 | Participants process other commitments and produce packages addressed to peers. |
+| DKG | Round 3 | Participants finalize key packages and confirm the group public key. |
+| Signing | Round 1 | Signers generate nonces and commitments. |
+| Signing | Round 2 | Signers produce signature shares. |
+| Signing | Aggregation | Shares are aggregated and verified as one Ed25519 signature. |
+
+```mermaid
+sequenceDiagram
+  participant A as Participant 1
+  participant B as Participant 2
+  participant C as Participant 3
+  participant R as Relay
+
+  A->>R: DKG round 1 package
+  B->>R: DKG round 1 package
+  C->>R: DKG round 1 package
+  R-->>A: Other round 1 packages
+  R-->>B: Other round 1 packages
+  R-->>C: Other round 1 packages
+  A->>R: DKG round 2 packages
+  B->>R: DKG round 2 packages
+  C->>R: DKG round 2 packages
+  R-->>A: Packages for participant 1
+  R-->>B: Packages for participant 2
+  R-->>C: Packages for participant 3
+  A->>R: Group key confirmation
+  B->>R: Group key confirmation
+  C->>R: Group key confirmation
+```
+
+## Failure modes to document honestly
+
+- If fewer than threshold key packages are available, local signing cannot proceed.
+- If a participant loses its key package and no recovery flow exists for that state, the participant cannot recreate that share.
+- If DKG output is not backed up, the vault can become unrecoverable.
+- If the relay is offline, cross-device ceremonies cannot coordinate, but same-device local signing may still work if enough key packages are present locally.
+

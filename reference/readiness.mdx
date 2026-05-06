@@ -1,0 +1,53 @@
+---
+title: "Readiness"
+description: "Current readiness assessment from the active source code."
+icon: "list-checks"
+---
+
+This page is intentionally conservative. It describes what is implemented now and what should happen before a public developer release.
+
+## Current status
+
+| Area | Ready for internal use | Ready for public external developers | Notes |
+| --- | --- | --- | --- |
+| Browser wallet | Yes | Not as a packaged product | App builds from source; extension packaging and store distribution are separate tasks. |
+| Relay server | Yes | Partially | Works as a private server; production deployment hardening and operational docs are still needed. |
+| Rust SDK | Yes | Partially | Good workspace API; not documented as a published crates.io package. |
+| CLI | Yes | Partially | Useful local developer CLI; not a polished installed distribution. |
+| TypeScript SDK | Yes, internal | No | Needs extraction, parity tests, package manifest, and public import paths. |
+| Solana program | Source exists | Deployment-sensitive | Do not change instruction layouts casually because redeployment and client compatibility are involved. |
+
+## Code cleanup decision for this docs pass
+
+No source refactor was required before rewriting the docs. The main issue was documentation accuracy, not a code organization blocker.
+
+The only recommended code work before public SDK docs is the TypeScript SDK extraction described in the TypeScript SDK page. That should be done as a separate implementation task with tests because it changes package boundaries.
+
+## Verification commands
+
+Use these checks after code changes:
+
+```bash
+npm run build
+npm run lint
+```
+
+```bash
+cd relay-server
+npm run build
+```
+
+```bash
+cargo test --workspace
+cargo fmt --all --check
+```
+
+## Documentation rules for this project
+
+- Use repository-relative paths only.
+- Do not include local machine directories.
+- Do not claim a public SDK exists until it is packaged.
+- Do not rely on stale markdown when code disagrees.
+- Do not edit Solana program logic during documentation cleanup.
+- Mark internal imports clearly in snippets.
+

@@ -1,0 +1,78 @@
+---
+title: "Setup"
+description: "Commands for building and verifying the active codebases without exposing local machine paths."
+icon: "terminal"
+---
+
+This page intentionally lists commands without absolute machine paths. Run each command from the matching repository root or subdirectory.
+
+<Warning>
+For Solana, Rust-for-Solana, local validators, Pinocchio builds, Anchor, and Arcium tooling, use WSL unless the project owner explicitly changes that rule.
+</Warning>
+
+## Browser wallet
+
+```bash
+npm install
+npm run dev
+npm run build
+npm run lint
+```
+
+The browser wallet scripts come from `package.json`:
+
+| Script | Purpose |
+| --- | --- |
+| `npm run dev` | Starts the Vite development server. |
+| `npm run build` | Runs TypeScript project build and Vite production build. |
+| `npm run lint` | Runs ESLint across the browser wallet source. |
+| `npm run preview` | Serves the built Vite output. |
+
+## Relay server
+
+```bash
+cd relay-server
+npm install
+npm run build
+npm run dev
+```
+
+The relay server scripts come from `relay-server/package.json`:
+
+| Script | Purpose |
+| --- | --- |
+| `npm run dev` | Runs `tsx watch src/server.ts`. |
+| `npm run build` | Compiles the relay server TypeScript. |
+| `npm start` | Runs the compiled server from `dist/server.js`. |
+
+## Rust workspace
+
+Run these from the Rust workspace root.
+
+```bash
+cargo build --workspace
+cargo test --workspace
+cargo fmt --all --check
+```
+
+The workspace contains:
+
+- `crates/vaulkyrie-cli`
+- `crates/vaulkyrie-frost`
+- `crates/vaulkyrie-frost-wasm`
+- `crates/vaulkyrie-protocol`
+- `crates/vaulkyrie-sdk`
+- `programs/vaulkyrie-core`
+
+## Docs site
+
+Run these from the Mintlify docs repository.
+
+```bash
+npm i -g mint
+mint validate
+mint dev
+```
+
+Mintlify deploys from the GitHub repository connected to the hosted docs project. After a commit lands on the connected branch, the hosted docs site should rebuild automatically.
+

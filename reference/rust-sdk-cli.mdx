@@ -1,0 +1,121 @@
+---
+title: "Rust SDK and CLI"
+description: "What is implemented in the Rust SDK and CLI, with realistic readiness notes."
+icon: "terminal-square"
+---
+
+The Rust SDK and CLI are implemented in the Rust workspace.
+
+## Rust SDK
+
+Source: `crates/vaulkyrie-sdk/src/`
+
+The SDK includes:
+
+- Instruction builders in `instruction.rs`
+- PDA helpers in `pda.rs`
+- Account decoders in `accounts.rs`
+- Error decoding in `error.rs`
+- Shared types in `types.rs`
+- Optional FROST helper exports in `frost.rs`
+
+### Instruction builder coverage
+
+`crates/vaulkyrie-sdk/src/instruction.rs` currently exposes builders for:
+
+- `ping`
+- `init_vault`
+- `init_authority`
+- `init_quantum_vault`
+- `init_pqc_wallet`
+- `set_vault_status`
+- `rotate_authority`
+- `init_authority_proof`
+- `write_authority_proof_chunk`
+- `rotate_authority_staged`
+- `advance_winter_authority`
+- `split_quantum_vault`
+- `close_quantum_vault`
+- `advance_pqc_wallet`
+- `init_spend_orchestration`
+- `commit_spend_orchestration`
+- `complete_spend_orchestration`
+- `fail_spend_orchestration`
+- `init_recovery`
+- `complete_recovery`
+- `migrate_authority`
+
+### Example: PDA derivation and instruction building
+
+```rust
+use vaulkyrie_sdk::{instruction, pda, Pubkey};
+
+let program_id = Pubkey::from([1u8; 32]);
+let wallet_pubkey = Pubkey::from([2u8; 32]);
+let (vault_registry, bump) = pda::find_vault_registry(&wallet_pubkey, &program_id);
+
+let ix = instruction::init_vault(
+    &program_id,
+    &vault_registry,
+    &wallet_pubkey,
+    wallet_pubkey.to_bytes(),
+    [9u8; 32],
+    bump,
+);
+```
+
+## CLI
+
+Source: `crates/vaulkyrie-cli/src/`
+
+The CLI binary is named `vaulkyrie`. It is a workspace CLI, not currently documented as a published installer.
+
+Command groups:
+
+| Group | Source | Purpose |
+| --- | --- | --- |
+| `vault` | `cmd/vault.rs` | Vault lifecycle instruction JSON. |
+| `dkg` | `cmd/dkg.rs` | FROST harness signing, custom signing, legacy message signing, share refresh. |
+| `authority` | `cmd/authority.rs` | Authority init, rotation, staged proof helpers. |
+| `quantum` | `cmd/quantum.rs` | Quantum vault and PQC wallet instruction JSON. |
+| `spend` | `cmd/spend.rs` | Spend orchestration init, commit, complete, fail. |
+| `recovery` | `cmd/recovery.rs` | Recovery instruction JSON. |
+| `pda` | `cmd/pda.rs` | PDA derivation. |
+| `inspect` | `cmd/inspect.rs` | Inspect account data. |
+| `decode` | `cmd/decode.rs` | Decode errors, instruction data, or account bytes. |
+| `ping` | `cmd/mod.rs` | No-op program health instruction. |
+
+### Example: run FROST harness
+
+```bash
+cargo run -p vaulkyrie-cli -- dkg sign --message 68656c6c6f
+```
+
+### Example: derive a PQC wallet PDA
+
+```bash
+cargo run -p vaulkyrie-cli -- pda pqc-wallet \
+  --program-id <PROGRAM_ID> \
+  --wallet-id <32_BYTE_HEX_WALLET_ID>
+```
+
+### Example: build PQC advance instruction JSON
+
+```bash
+cargo run -p vaulkyrie-cli -- quantum advance-pqc-wallet \
+  --program-id <PROGRAM_ID> \
+  --wallet <PQC_WALLET_PDA> \
+  --destination <DESTINATION_PUBKEY> \
+  --signature <SIGNATURE_HEX> \
+  --next-root <32_BYTE_HEX_NEXT_ROOT> \
+  --amount 1000000
+```
+
+## Readiness
+
+| Surface | Assessment |
+| --- | --- |
+| Rust SDK | Usable inside the workspace and structurally complete for current `vaulkyrie-core` instruction builders. Not currently presented as a published crates.io API. |
+| CLI | Usable for local development, harnesses, PDA derivation, decoding, and instruction JSON. Not yet a polished public CLI distribution with installers, shell completions, or end-to-end transaction submission UX. |
+| Tests | Workspace tests exist and cover SDK serialization, PDA derivation, FROST harnesses, and program lifecycle logic. |
+
